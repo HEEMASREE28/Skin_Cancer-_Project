@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Cancer Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        header {
+            background-color: #6200ea;
+            color: #fff;
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+        }
+        main {
+            text-align: center;
+            padding: 2rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="file"] {
+            margin: 1rem 0;
+        }
+        button {
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #3700b3;
+        }
+        #output {
+            margin-top: 2rem;
+            font-size: 1.2rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Skin Cancer Detection</h1>
+    </header>
+    <main>
+        <h2>Upload an Image</h2>
+        <form id="uploadForm">
+            <input type="file" id="imageInput" accept="image/*" required>
+            <button type="submit">Detect</button>
+        </form>
+        <div id="output">Prediction will appear here.</div>
+    </main>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const imageInput = document.getElementById('imageInput');
+        const output = document.getElementById('output');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!imageInput.files[0]) {
+                output.textContent = "Please select an image file.";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', imageInput.files[0]);
+
+            output.textContent = "Processing...";
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error("Server not found. Please try again later.");
+                    } else if (response.status === 500) {
+                        throw new Error("Internal server error. Please try again later.");
+                    } else {
+                        throw new Error(`Unexpected error: ${response.statusText}`);
+                    }
+                }
+
+                const result = await response.json();
+                output.textContent = `Prediction: ${result.prediction}`;
+            } catch (error) {
+                output.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
